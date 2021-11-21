@@ -1,13 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import axios from '../service/axios';
 import "./Row.css";
+import YouTube from 'react-youtube';
+import movieTrailer from 'movie-trailer';
 
 const baseUrlImage = "https://image.tmdb.org/t/p/original/";
 
 function Row({ title, fetchUrl }) {
 
     const [movies,setMovies] = useState([]);
-
+    const [trailerUrl, setTrailerUrl] = useState("");
 
     useEffect(()=>{
 
@@ -20,7 +22,32 @@ function Row({ title, fetchUrl }) {
 
     },[fetchUrl]);
 
+    const opts = {
+        height: "390",
+        width: "100%",
+        playerVars : {
+
+            autoplay: 1,
+        }
+    }
+
+
     console.log(movies);
+    
+    const handleClick = (movie)=> {
+
+        if(trailerUrl){
+            setTrailerUrl('');
+        }else{
+            movieTrailer(movie?.name || "")
+            .then(url =>{
+                const urlParams = new URLSearchParams(new URL(url).search);
+                setTrailerUrl(urlParams.get('v'));
+            }).catch((error) => console.log(error));
+        }
+
+    }
+
 
     return (
         <div className="row">
@@ -32,6 +59,7 @@ function Row({ title, fetchUrl }) {
                 {movies.map(movie => (
                     <img
                         key={movie.id}
+                        onClick={()=> handleClick(movie)}
                         className="row__poster"
                         src={`${baseUrlImage}${movie.poster_path}`}
                         alt={movie.name } 
@@ -39,6 +67,8 @@ function Row({ title, fetchUrl }) {
                 ))}
 
             </div>
+
+            {trailerUrl && <YouTube videoId={trailerUrl} opts={opts} />  } 
 
         </div>
     )
